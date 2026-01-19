@@ -1,0 +1,1306 @@
+{
+  "name": "Competitor Playbook Generator (Gamma)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 1. TRIGGERS\nAccept competitor URL via form or webhook API"
+      },
+      "id": "sticky-triggers",
+      "name": "Sticky Note - Triggers",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1400,
+        -220
+      ],
+      "color": 4
+    },
+    {
+      "parameters": {
+        "content": "## 2. URL DISCOVERY\nScrape homepage, extract social handles, search for company info"
+      },
+      "id": "sticky-discovery",
+      "name": "Sticky Note - Discovery",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        -220
+      ],
+      "color": 6
+    },
+    {
+      "parameters": {
+        "content": "## 3. DATA COLLECTION\nParallel API calls to 8 data sources:\n• Firecrawl (website pages)\n• ScrapeCreators (social + ads)\n• DataForSEO (SEO metrics)"
+      },
+      "id": "sticky-collection",
+      "name": "Sticky Note - Collection",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        -460
+      ],
+      "color": 3
+    },
+    {
+      "parameters": {
+        "content": "## 4. AI DATA EXTRACTION\nGemini Flash analyzes raw API responses\n→ No brittle field mapping!\n→ Structured data before merge"
+      },
+      "id": "sticky-ai-extraction",
+      "name": "Sticky Note - AI Extraction",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        440,
+        -460
+      ],
+      "color": 5
+    },
+    {
+      "parameters": {
+        "content": "## 5. DATA MERGE\nCombine all 8 data streams\nPass through pre-analyzed data"
+      },
+      "id": "sticky-merge",
+      "name": "Sticky Note - Merge",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        -220
+      ],
+      "color": 2
+    },
+    {
+      "parameters": {
+        "content": "## 6. COMPETITIVE ANALYSIS\nClaude Sonnet synthesizes all data\ninto comprehensive playbook JSON"
+      },
+      "id": "sticky-analysis",
+      "name": "Sticky Note - Analysis",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        -220
+      ],
+      "color": 1
+    },
+    {
+      "parameters": {
+        "content": "## 7. DECK GENERATION\nGamma Remix API fills template\nPolling loop waits for completion"
+      },
+      "id": "sticky-deck",
+      "name": "Sticky Note - Deck",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1880,
+        -220
+      ],
+      "color": 7
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "competitor-playbook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "868e7d8e-9366-49c2-8644-6e554966bb9e",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1320,
+        -80
+      ],
+      "webhookId": "competitor-playbook"
+    },
+    {
+      "parameters": {
+        "formTitle": "Competitor Playbook Generator",
+        "formDescription": "Enter a competitor URL - social handles will be auto-detected from their website",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Competitor URL",
+              "placeholder": "https://competitor.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3a5a207-d9c6-4535-aac4-89b991d5080b",
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -1320,
+        80
+      ],
+      "webhookId": "competitor-form"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize form input - just extract URL\nconst input = $input.first().json;\n\nreturn {\n  json: {\n    body: {\n      url: input['Competitor URL'] || input.url\n    },\n    trigger_type: 'form'\n  }\n};"
+      },
+      "id": "8737be57-ad70-4607-afbc-4e208b28eb20",
+      "name": "Normalize Form Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.url }}\",\n  \"formats\": [\"markdown\", \"html\"],\n  \"onlyMainContent\": true,\n  \"includeTags\": [\"h1\", \"h2\", \"h3\", \"p\", \"li\", \"a\"],\n  \"waitFor\": 3000\n}",
+        "options": {}
+      },
+      "id": "5822636f-8790-4a31-857b-9ede7df3215e",
+      "name": "Firecrawl - Homepage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -880,
+        0
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4h3R8ycmwM3qzaVb",
+          "name": "Firecrawl API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.url }}/about\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true,\n  \"waitFor\": 2000\n}",
+        "options": {}
+      },
+      "id": "1796217f-533d-4202-939b-eeb43ae264f3",
+      "name": "Firecrawl - About Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -360
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4h3R8ycmwM3qzaVb",
+          "name": "Firecrawl API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.url }}/pricing\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true,\n  \"waitFor\": 2000\n}",
+        "options": {}
+      },
+      "id": "9c7c06b6-1f8d-498a-841c-7353d076fdda",
+      "name": "Firecrawl - Pricing Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -240
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4h3R8ycmwM3qzaVb",
+          "name": "Firecrawl API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.body.url }}/blog\",\n  \"formats\": [\"markdown\"],\n  \"onlyMainContent\": true,\n  \"waitFor\": 2000\n}",
+        "options": {}
+      },
+      "id": "14c90032-4c4a-4844-b0ed-8da641f9650e",
+      "name": "Firecrawl - Blog",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        -120
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4h3R8ycmwM3qzaVb",
+          "name": "Firecrawl API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "=https://api.scrapecreators.com/v1/linkedin/company?url=https://linkedin.com/company/{{ $json.body.linkedin_handle }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "930db7e8-ba2b-408d-b583-d73a4513629b",
+      "name": "ScrapeCreators - LinkedIn Company",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "55pCjUM1Y9yvV9Ru",
+          "name": "Scrapecreators"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "=https://api.scrapecreators.com/v1/instagram/profile?handle={{ $json.body.instagram_handle || $json.body.company_name.toLowerCase().replace(/[^a-z0-9]/g, '') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "7015ae46-662e-4a52-b28e-f6ba490483e0",
+      "name": "ScrapeCreators - Instagram Profile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "55pCjUM1Y9yvV9Ru",
+          "name": "Scrapecreators"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "=https://api.scrapecreators.com/v1/facebook/adLibrary/company/ads?companyName={{ encodeURIComponent($json.body.company_name) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "dd25cbb0-403f-4a66-bbb7-6b244a293d39",
+      "name": "ScrapeCreators - Meta Ad Library",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "55pCjUM1Y9yvV9Ru",
+          "name": "Scrapecreators"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dataforseo.com/v3/dataforseo_labs/google/domain_rank_overview/live",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"target\": \"{{ $json.body.url.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0] }}\",\n    \"location_code\": 2840,\n    \"language_code\": \"en\"\n  }\n]",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "bb5b7376-f6a4-407a-9574-73315401f613",
+      "name": "DataForSEO - Domain Overview",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        360
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "U8DlfRLL7aUTEx8C",
+          "name": "DataForSEO API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "HTTP-Referer",
+              "value": "https://github.com/themattberman/n8n-gamma"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'google/gemini-3-flash-preview', max_tokens: 4000, messages: [{ role: 'user', content: 'You are an ad analyst. Extract structured data from this raw Meta Ad Library API response.\\n\\nRAW API RESPONSE:\\n' + JSON.stringify($json) + '\\n\\nExtract and return this EXACT JSON structure:\\n{\\n  \"source\": \"ad_analysis\",\\n  \"ad_analysis\": {\\n    \"ad_volume\": <number of ads found>,\\n    \"page_likes\": <page like count or null>,\\n    \"top_headlines\": [<up to 5 actual ad headlines - copy EXACTLY from data>],\\n    \"top_ad_copy\": [<up to 3 actual ad body texts - copy EXACTLY>],\\n    \"top_ad_images\": [<up to 5 image/video URLs>],\\n    \"primary_formats\": [<array of format types like \"VIDEO\", \"IMAGE\">],\\n    \"primary_ctas\": [<array of CTA types like \"LEARN_MORE\", \"SIGN_UP\">],\\n    \"hook_patterns\": [{\"pattern\": \"Pattern name\", \"example\": \"Actual headline\", \"psychological_trigger\": \"Why it works\"}],\\n    \"visual_style\": \"Description of visual approach\",\\n    \"whats_working\": [<3 strategic insights>],\\n    \"ad_strategy_summary\": \"2-3 sentence summary\",\\n    \"raw_field_names\": [<list of field names found in raw response for debugging>]\\n  }\\n}\\n\\nCRITICAL: Copy headlines and ad copy EXACTLY as they appear. If no ads found, set ad_volume to 0.\\n\\nReturn ONLY valid JSON.' }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "gemini-raw-ad-analysis",
+      "name": "Gemini - Raw Ad Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "FoHuYOrModyYssj3",
+          "name": "OpenRouter"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Gemini's ad analysis response\nconst response = $input.first().json;\n\nlet result = { source: 'ad_analysis', ad_analysis: { ad_volume: 0, status: 'parse_failed' } };\n\ntry {\n  const content = response.choices?.[0]?.message?.content || '{}';\n  // Try to parse JSON, handling potential markdown code blocks\n  let jsonStr = content;\n  const jsonMatch = content.match(/```json\\n?([\\s\\S]*?)\\n?```/) || content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    jsonStr = jsonMatch[1] || jsonMatch[0];\n  }\n  result = JSON.parse(jsonStr);\n  // Ensure source field is set\n  result.source = 'ad_analysis';\n} catch (e) {\n  result = {\n    source: 'ad_analysis',\n    ad_analysis: {\n      ad_volume: 0,\n      status: 'parse_error',\n      error: e.message,\n      raw_response: (response.choices?.[0]?.message?.content || '').substring(0, 500)\n    }\n  };\n}\n\nreturn { json: result };"
+      },
+      "id": "parse-ad-analysis",
+      "name": "Parse Ad Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "HTTP-Referer",
+              "value": "https://github.com/themattberman/n8n-gamma"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'google/gemini-3-flash-preview', max_tokens: 2000, messages: [{ role: 'user', content: 'You are a social media analyst. Extract structured data from this raw Instagram API response.\\n\\nRAW API RESPONSE:\\n' + JSON.stringify($json) + '\\n\\nExtract and return this EXACT JSON structure:\\n{\\n  \"source\": \"instagram_analysis\",\\n  \"instagram_analysis\": {\\n    \"followers\": <follower count number>,\\n    \"following\": <following count number>,\\n    \"posts\": <post count number>,\\n    \"username\": \"<username>\",\\n    \"full_name\": \"<full name>\",\\n    \"bio\": \"<bio text>\",\\n    \"is_verified\": <boolean>,\\n    \"is_business\": <boolean>,\\n    \"engagement_rate\": \"<estimate like High (3-6%) or Medium (1-3%)>\",\\n    \"posting_frequency\": \"<estimate like Daily or 2-3x per week>\",\\n    \"content_pillars\": [<3-5 likely content themes based on bio>],\\n    \"bio_analysis\": \"<what is their value prop based on bio?>\",\\n    \"whats_working\": [<2-3 strategic insights>],\\n    \"raw_field_names\": [<list of field names found for debugging>]\\n  }\\n}\\n\\nIf no data found or error, set followers to 0 and add status field.\\n\\nReturn ONLY valid JSON.' }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "gemini-raw-instagram-analysis",
+      "name": "Gemini - Raw Instagram Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        120
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "FoHuYOrModyYssj3",
+          "name": "OpenRouter"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Gemini's Instagram analysis response\nconst response = $input.first().json;\n\nlet result = { source: 'instagram_analysis', instagram_analysis: { followers: 0, status: 'parse_failed' } };\n\ntry {\n  const content = response.choices?.[0]?.message?.content || '{}';\n  let jsonStr = content;\n  const jsonMatch = content.match(/```json\\n?([\\s\\S]*?)\\n?```/) || content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    jsonStr = jsonMatch[1] || jsonMatch[0];\n  }\n  result = JSON.parse(jsonStr);\n  result.source = 'instagram_analysis';\n} catch (e) {\n  result = {\n    source: 'instagram_analysis',\n    instagram_analysis: {\n      followers: 0,\n      status: 'parse_error',\n      error: e.message,\n      raw_response: (response.choices?.[0]?.message?.content || '').substring(0, 500)\n    }\n  };\n}\n\nreturn { json: result };"
+      },
+      "id": "parse-instagram-analysis",
+      "name": "Parse Instagram Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "HTTP-Referer",
+              "value": "https://github.com/themattberman/n8n-gamma"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'google/gemini-3-flash-preview', max_tokens: 2000, messages: [{ role: 'user', content: 'You are a B2B marketing analyst. Extract structured data from this raw LinkedIn Company API response.\\n\\nRAW API RESPONSE:\\n' + JSON.stringify($json) + '\\n\\nExtract and return this EXACT JSON structure:\\n{\\n  \"source\": \"linkedin_analysis\",\\n  \"linkedin_analysis\": {\\n    \"company_name\": \"<company name>\",\\n    \"logo_url\": \"<company logo image URL if available in the data>\",\\n    \"description\": \"<company description or slogan>\",\\n    \"employee_count\": <number or estimate like 500>,\\n    \"employee_range\": \"<range like 201-500>\",\\n    \"headquarters\": \"<location>\",\\n    \"website\": \"<website URL>\",\\n    \"specialties\": [<array of specialties>],\\n    \"content_themes\": [<3-5 topics they likely post about>],\\n    \"posting_frequency\": \"<estimate like 3x per week>\",\\n    \"thought_leadership\": \"<describe their positioning>\",\\n    \"whats_working\": [<2-3 strategic insights>],\\n    \"linkedin_strategy_summary\": \"2-3 sentence summary\",\\n    \"raw_field_names\": [<list of field names found for debugging>]\\n  }\\n}\\n\\nIMPORTANT: Look for logo/image URLs in fields like logo, logoUrl, image, companyLogo, etc. Copy the full URL if found.\\n\\nIf no data found, set status to no_data.\\n\\nReturn ONLY valid JSON.' }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "gemini-raw-linkedin-analysis",
+      "name": "Gemini - Raw LinkedIn Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "FoHuYOrModyYssj3",
+          "name": "OpenRouter"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Gemini's LinkedIn analysis response\nconst response = $input.first().json;\n\nlet result = { source: 'linkedin_analysis', linkedin_analysis: { status: 'parse_failed' } };\n\ntry {\n  const content = response.choices?.[0]?.message?.content || '{}';\n  let jsonStr = content;\n  const jsonMatch = content.match(/```json\\n?([\\s\\S]*?)\\n?```/) || content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    jsonStr = jsonMatch[1] || jsonMatch[0];\n  }\n  result = JSON.parse(jsonStr);\n  result.source = 'linkedin_analysis';\n} catch (e) {\n  result = {\n    source: 'linkedin_analysis',\n    linkedin_analysis: {\n      status: 'parse_error',\n      error: e.message,\n      raw_response: (response.choices?.[0]?.message?.content || '').substring(0, 500)\n    }\n  };\n}\n\nreturn { json: result };"
+      },
+      "id": "parse-linkedin-analysis",
+      "name": "Parse LinkedIn Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simplified Process Website Data - passes through pre-analyzed data\nconst items = $input.all();\n\nlet data = {\n  website: {\n    homepage: '',\n    about: '',\n    pricing: '',\n    blog: ''\n  },\n  seo: null,\n  // Pre-analyzed data from Gemini\n  ad_analysis: null,\n  instagram_analysis: null,\n  linkedin_analysis: null\n};\n\nlet originalUrl = 'Unknown';\nlet debug = { items_received: items.length, sources_found: [] };\n\nfor (const item of items) {\n  const json = item.json;\n\n  // Pass through pre-analyzed ad data\n  if (json.source === 'ad_analysis') {\n    data.ad_analysis = json.ad_analysis;\n    debug.sources_found.push('ad_analysis_gemini');\n    continue;\n  }\n\n  // Pass through pre-analyzed Instagram data\n  if (json.source === 'instagram_analysis') {\n    data.instagram_analysis = json.instagram_analysis;\n    debug.sources_found.push('instagram_analysis_gemini');\n    continue;\n  }\n\n  // Pass through pre-analyzed LinkedIn data\n  if (json.source === 'linkedin_analysis') {\n    data.linkedin_analysis = json.linkedin_analysis;\n    debug.sources_found.push('linkedin_analysis_gemini');\n    continue;\n  }\n\n  // Homepage data from Process Search Results (includes homepage_data)\n  if (json.homepage_data && json.homepage_data.markdown) {\n    const content = json.homepage_data.markdown.substring(0, 15000);\n    data.website.homepage = content;\n    originalUrl = json.body?.url || json.homepage_data.metadata?.url || originalUrl;\n    debug.sources_found.push('homepage');\n  }\n\n  // Firecrawl website data (About, Pricing, Blog)\n  if (json.data && json.data.markdown) {\n    const url = json.data.metadata?.url || '';\n    const content = json.data.markdown.substring(0, 15000);\n\n    if (url.includes('/about')) {\n      data.website.about = content;\n      debug.sources_found.push('about_page');\n    } else if (url.includes('/pricing')) {\n      data.website.pricing = content;\n      debug.sources_found.push('pricing_page');\n    } else if (url.includes('/blog')) {\n      data.website.blog = content;\n      debug.sources_found.push('blog_page');\n    }\n  }\n\n  // DataForSEO - handle response structure\n  if (json.tasks && Array.isArray(json.tasks) && json.tasks.length > 0) {\n    const task = json.tasks[0];\n    if (task.result && Array.isArray(task.result) && task.result.length > 0) {\n      const seoResult = task.result[0];\n      if (seoResult.items && Array.isArray(seoResult.items) && seoResult.items.length > 0) {\n        const seoItem = seoResult.items[0];\n        if (seoItem.metrics) {\n          data.seo = {\n            organicTraffic: seoItem.metrics.organic?.etv || null,\n            organicKeywords: seoItem.metrics.organic?.count || null,\n            paidTraffic: seoItem.metrics.paid?.etv || null,\n            estimatedValue: seoItem.metrics.organic?.estimated_paid_traffic_cost || null,\n            domain_rank: seoItem.rank || null\n          };\n          debug.sources_found.push('seo_metrics');\n        }\n      }\n    }\n  }\n}\n\nreturn {\n  json: {\n    original_url: originalUrl,\n    website_data: data.website,\n    seo_data: data.seo,\n    // Pre-analyzed data (already structured by Gemini)\n    ad_analysis: data.ad_analysis,\n    instagram_analysis: data.instagram_analysis,\n    linkedin_analysis: data.linkedin_analysis,\n    scraped_at: new Date().toISOString(),\n    debug: debug\n  }\n};"
+      },
+      "id": "2034832c-32e9-4e10-8d2a-4b61d040ecd4",
+      "name": "Process Website Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "HTTP-Referer",
+              "value": "https://github.com/themattberman/n8n-gamma"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'anthropic/claude-sonnet-4', max_tokens: 8000, messages: [{ role: 'system', content: 'You are an elite competitive intelligence analyst who charges $500/hr. Your analysis creates URGENCY - every insight should make the reader feel they are losing customers RIGHT NOW to this competitor.\\n\\nCRITICAL TONE REQUIREMENTS:\\n\\n1. COMPETITIVE URGENCY FRAMING - Every insight must create pressure:\\n   - BAD: \"They have strong social media presence with 50K followers\"\\n   - GOOD: \"They\\'re capturing 50K of YOUR potential customers on Instagram. Their top post got 2,400 engagements on a topic you haven\\'t touched.\"\\n\\n2. QUANTIFIED IMPACT - Attach numbers that hurt:\\n   - \"That\\'s ~X clicks/month going to them instead of you\"\\n   - \"This ad spend suggests $X/month. Are you matching?\"\\n\\n3. THIS-WEEK SPECIFICITY - Every recommendation needs: WHAT (action), WHY (pressure), HOW (first step this week):\\n   - BAD: \"Consider improving your social media strategy\"\\n   - GOOD: \"Launch an Instagram carousel series on [their top topic] this week. First carousel: repurpose your [existing content] into 5 slides.\"\\n\\nAlways output valid JSON. Make readers feel the urgency to act NOW.' }, { role: 'user', content: 'Analyze this competitor and generate a comprehensive playbook breakdown.\\n\\n## COMPANY URL\\n' + $json.original_url + '\\n\\n## HOMEPAGE CONTENT\\n' + ($json.website_data.homepage || 'N/A') + '\\n\\n## ABOUT PAGE\\n' + ($json.website_data.about || 'N/A') + '\\n\\n## PRICING PAGE\\n' + ($json.website_data.pricing || 'N/A') + '\\n\\n## BLOG CONTENT\\n' + ($json.website_data.blog || 'N/A') + '\\n\\n## PRE-ANALYZED LINKEDIN DATA (from Gemini)\\n' + JSON.stringify($json.linkedin_analysis || {}) + '\\n\\n## PRE-ANALYZED INSTAGRAM DATA (from Gemini)\\n' + JSON.stringify($json.instagram_analysis || {}) + '\\n\\n## PRE-ANALYZED AD DATA (from Gemini)\\n' + JSON.stringify($json.ad_analysis || {}) + '\\n\\n## SEO DATA\\n' + JSON.stringify($json.seo_data) + '\\n\\n---\\n\\nIMPORTANT: The LinkedIn, Instagram, and Ad data has already been analyzed by Gemini. USE THE PRE-ANALYZED DATA DIRECTLY - do not try to re-extract from raw fields.\\n\\nGenerate your analysis as a JSON object with this exact structure:\\n\\n{\\n  \"company_name\": \"extracted company name\",\\n  \"company_url\": \"the URL analyzed\",\\n  \"analysis_date\": \"today s date\",\\n  \"executive_summary\": {\\n    \"one_liner\": \"One sentence summary that creates urgency\",\\n    \"threat_level\": \"LOW | MEDIUM | HIGH | CRITICAL\",\\n    \"key_insights\": [\"insight 1 with competitive pressure\", \"insight 2\", \"insight 3\", \"insight 4\", \"insight 5\"]\\n  },\\n  \"positioning\": {\\n    \"value_proposition\": \"Their core value prop\",\\n    \"target_audience\": \"Who they sell to - these are YOUR potential customers\",\\n    \"key_differentiators\": [\"diff 1\", \"diff 2\", \"diff 3\"],\\n    \"market_position\": \"Leader | Challenger | Niche | Emerging\"\\n  },\\n  \"messaging\": {\\n    \"brand_voice\": \"Their tone and style\",\\n    \"primary_hooks\": [{\"hook\": \"exact text\", \"type\": \"Pain | Gain | Fear | Curiosity\", \"effectiveness\": \"why it works - what makes prospects choose them\"}],\\n    \"key_phrases\": [\"phrase 1\", \"phrase 2\"],\\n    \"proof_elements\": [\"proof 1\", \"proof 2\"]\\n  },\\n  \"content_strategy\": {\\n    \"content_pillars\": [\"topic 1\", \"topic 2\"],\\n    \"formats_used\": [\"blog\", \"video\"],\\n    \"publishing_frequency\": \"how often\",\\n    \"top_performing_content\": [{\"title\": \"content title\", \"format\": \"type\", \"why_it_works\": \"analysis of why this captures YOUR audience\"}],\\n    \"distribution_channels\": [\"Instagram\", \"LinkedIn\"],\\n    \"social_metrics\": {\\n      \"instagram_followers\": \"USE followers from PRE-ANALYZED INSTAGRAM DATA - format as number with K/M suffix\",\\n      \"instagram_posts\": \"USE posts from PRE-ANALYZED INSTAGRAM DATA\",\\n      \"instagram_engagement_rate\": \"USE engagement_rate from PRE-ANALYZED INSTAGRAM DATA\",\\n      \"linkedin_employees\": \"USE employee_count from PRE-ANALYZED LINKEDIN DATA\",\\n      \"linkedin_posting_frequency\": \"USE posting_frequency from PRE-ANALYZED LINKEDIN DATA\",\\n      \"posting_frequency\": \"Combined posting frequency across platforms\",\\n      \"content_pillars\": \"USE content_pillars from PRE-ANALYZED INSTAGRAM DATA\",\\n      \"bio_analysis\": \"USE bio_analysis from PRE-ANALYZED INSTAGRAM DATA\",\\n      \"primary_platform\": \"Instagram-first or LinkedIn-first based on follower ratios\"\\n    }\\n  },\\n  \"ad_psychology\": {\\n    \"ad_volume\": \"USE ad_volume from PRE-ANALYZED AD DATA - number only\",\\n    \"format_mix\": \"Calculate percentage split from primary_formats (e.g. 70% Video, 30% Image)\",\\n    \"dominant_hook_type\": \"Analyze hook_patterns to find most common type (Pain-focused, Gain-focused, Fear-based, or Curiosity-driven)\",\\n    \"visual_style\": \"USE visual_style from PRE-ANALYZED AD DATA - keep to 3-4 words max\",\\n    \"primary_ad_formats\": \"USE primary_formats from PRE-ANALYZED AD DATA\",\\n    \"top_cta_types\": \"USE primary_ctas from PRE-ANALYZED AD DATA\",\\n    \"actual_headlines\": \"USE top_headlines from PRE-ANALYZED AD DATA - copy exactly\",\\n    \"actual_ad_copy\": \"USE top_ad_copy from PRE-ANALYZED AD DATA - copy exactly\",\\n    \"hook_patterns\": \"USE hook_patterns from PRE-ANALYZED AD DATA\",\\n    \"whats_working\": \"USE whats_working from PRE-ANALYZED AD DATA\",\\n    \"ad_strategy_summary\": \"USE ad_strategy_summary from PRE-ANALYZED AD DATA\"\\n  },\\n  \"visual_assets\": {\\n    \"ad_creative_images\": \"PASS THROUGH top_ad_images array from PRE-ANALYZED AD DATA exactly as-is\",\\n    \"company_logo\": \"PASS THROUGH logo_url from PRE-ANALYZED LINKEDIN DATA exactly as-is - must be valid URL\"\\n  },\\n  \"seo_intelligence\": {\\n    \"estimated_traffic\": \"monthly organic traffic or N/A\",\\n    \"organic_keywords\": \"number of ranking keywords or N/A\",\\n    \"estimated_traffic_value\": \"dollar value or N/A\",\\n    \"top_opportunities\": [\"keyword gap 1 - this traffic is going to them\", \"keyword gap 2\"]\\n  },\\n  \"gaps_and_opportunities\": {\\n    \"content_gaps\": [{\"gap\": \"what is missing\", \"opportunity\": \"how to exploit THIS WEEK\"}],\\n    \"messaging_gaps\": [{\"gap\": \"angle missing\", \"opportunity\": \"how to exploit THIS WEEK\"}],\\n    \"audience_gaps\": [{\"gap\": \"segment ignored\", \"opportunity\": \"how to capture THIS WEEK\"}]\\n  },\\n  \"how_to_beat_them\": {\\n    \"quick_wins\": [{\"tactic\": \"specific action for THIS WEEK\", \"why\": \"what you lose by waiting\", \"effort\": \"LOW | MEDIUM | HIGH\"}],\\n    \"positioning_plays\": [{\"play\": \"strategy\", \"execution\": \"first step to do TODAY\"}],\\n    \"content_to_steal\": [{\"what\": \"content idea they own\", \"your_angle\": \"how to do it better THIS WEEK\"}],\\n    \"ad_ideas\": [{\"concept\": \"ad concept to test\", \"hook\": \"suggested hook that beats theirs\"}]\\n  }\\n}\\n\\nReturn ONLY the JSON, no other text.' }] }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "9ffaf12e-70f5-4d7f-9f60-1666452a357e",
+      "name": "Claude - Competitive Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "FoHuYOrModyYssj3",
+          "name": "OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude's response from OpenRouter\nconst response = $input.first().json;\n\n// OpenRouter returns in OpenAI format: choices[0].message.content\nconst content = response.choices?.[0]?.message?.content || response.content?.[0]?.text;\n\nif (!content) {\n  throw new Error('No content in response: ' + JSON.stringify(response).substring(0, 500));\n}\n\nlet analysis;\ntry {\n  analysis = JSON.parse(content);\n} catch (e) {\n  const jsonMatch = content.match(/```json\\n?([\\s\\S]*?)\\n?```/) || content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    const jsonStr = jsonMatch[1] || jsonMatch[0];\n    analysis = JSON.parse(jsonStr);\n  } else {\n    throw new Error('Could not parse response as JSON: ' + content.substring(0, 500));\n  }\n}\n\n// Validate required fields\nconst required = ['company_name', 'executive_summary', 'positioning', 'messaging', 'gaps_and_opportunities', 'how_to_beat_them'];\nfor (const field of required) {\n  if (!analysis[field]) {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\nreturn { json: analysis };"
+      },
+      "id": "8f352ad2-f4b2-4bdf-9a5f-7daca71545e9",
+      "name": "Parse Analysis JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format the analysis for Gamma Remix API\n// This fills in the LEAKED INTEL template while allowing text variation\nconst a = $input.first().json;\n\n// Helper to get ad creative images as markdown\nconst getAdCreativeImages = () => {\n  const images = a.visual_assets?.ad_creative_images || a.ad_psychology?.top_ad_images || [];\n  if (!Array.isArray(images) || images.length === 0) return '';\n  return images\n    .slice(0, 3)\n    .filter(url => url && typeof url === 'string' && url.startsWith('http'))\n    .map((url, i) => `![Ad Creative ${i + 1}](${url})`)\n    .join('\\n');\n};\n\n// Build the remix prompt - tells Gamma how to fill the template\nconst remixPrompt = `\nAdapt this competitive intelligence template for ${a.company_name} (${a.company_url || 'N/A'}).\n\nIMPORTANT: Keep the template's visual design, layout, and structure intact. Replace the example Notion data with the competitor data below. Vary the phrasing of recommendations and insights so each report feels fresh and unique.\n\n---\n\n## SLIDE 1: COVER\nCompany: ${a.company_name}\n${a.visual_assets?.company_logo ? `Company Logo: ![${a.company_name} Logo](${a.visual_assets.company_logo})` : ''}\nTitle: \"The ${a.company_name} Playbook They Don't Want You to See\"\nSubtitle: \"Every ad, every tactic, every weakness (exposed).\"\nDate: Q1 ${new Date().getFullYear()}\n\n## SLIDE 2: KEY INSIGHTS\nThreat Level Badge: ${a.executive_summary?.threat_level || 'MEDIUM'}\nSummary: ${a.executive_summary?.one_liner || 'Competitive analysis complete.'}\n\nThree key insight cards (keep card layout):\n1. ${a.executive_summary?.key_insights?.[0] || 'Key finding from analysis'}\n2. ${a.executive_summary?.key_insights?.[1] || 'Second strategic insight'}\n3. ${a.executive_summary?.key_insights?.[2] || 'Third actionable takeaway'}\n\n## SLIDE 3: HOW THEY DOMINATE\nTarget Segments: ${a.positioning?.target_audience || 'N/A'}\n\nWhy They Win (three benefit cards):\n1. ${a.positioning?.key_differentiators?.[0] || 'Core differentiator'}\n2. ${a.positioning?.key_differentiators?.[1] || 'Second advantage'}\n3. ${a.positioning?.key_differentiators?.[2] || 'Third strength'}\n\nMarket Position: ${a.positioning?.market_position || 'N/A'}\nValue Proposition: ${a.positioning?.value_proposition || 'N/A'}\n\n## SLIDE 4: THEIR MESSAGING PLAYBOOK\nBrand Voice: ${a.messaging?.brand_voice || 'N/A'}\n\nPrimary Hooks (quote style with appeal type):\n${a.messaging?.primary_hooks?.slice(0, 3).map(h => `- \"${h.hook}\" — ${h.type} appeal`).join('\\n') || '- No hooks identified'}\n\nSocial Proof Elements:\n${a.messaging?.proof_elements?.slice(0, 3).map(p => `- ${p}`).join('\\n') || '- N/A'}\n\nKey Phrases: ${a.messaging?.key_phrases?.join(', ') || 'N/A'}\n\n## SLIDE 5: CONTENT MACHINE ANALYSIS (Instagram + LinkedIn Focus)\n\nTop 4 Stats (show as stat cards or circles):\n1. Instagram Followers: ${a.content_strategy?.social_metrics?.instagram_followers || 'N/A'}\n2. Instagram Posts: ${a.content_strategy?.social_metrics?.instagram_posts || 'N/A'}\n3. LinkedIn Employees: ${a.content_strategy?.social_metrics?.linkedin_employees || 'N/A'}\n4. Posting Frequency: ${a.content_strategy?.social_metrics?.posting_frequency || 'N/A'}\n\nEngagement Metrics:\n- Instagram Engagement Rate: ${a.content_strategy?.social_metrics?.instagram_engagement_rate || 'N/A'}\n- Content Velocity: ${a.content_strategy?.social_metrics?.posting_frequency || 'Multiple posts per week'}\n- Primary Platform: ${a.content_strategy?.social_metrics?.primary_platform || 'Multi-platform'}\n\nContent Pillars (what they talk about):\n${a.content_strategy?.content_pillars?.map((p, i) => `${i + 1}. ${p}`).join('\\n') || '1. N/A'}\n\nTop Performing Content:\n${a.content_strategy?.top_performing_content?.slice(0, 3).map(c => `- ${c.title} (${c.format}) - ${c.why_it_works || ''}`).join('\\n') || '- N/A'}\n\nBio Analysis: ${a.content_strategy?.social_metrics?.bio_analysis || 'N/A'}\n\n## SLIDE 6: THEIR AD STRATEGY (EXPOSED)\n\nTop 4 Stats (show as stat cards or circles - CRITICAL METRICS):\n1. Ads Running: ${a.ad_psychology?.ad_volume || 'N/A'}\n2. Format Mix: ${a.ad_psychology?.format_mix || 'N/A'}\n3. Dominant Hook: ${a.ad_psychology?.dominant_hook_type || 'N/A'}\n4. Visual Style: ${a.ad_psychology?.visual_style || 'N/A'}\n\nAd Format Breakdown:\n${(Array.isArray(a.ad_psychology?.primary_ad_formats) ? a.ad_psychology.primary_ad_formats : []).map(t => `- ${t}`).join('\\n') || '- N/A'}\n\nTop CTAs Used:\n${(Array.isArray(a.ad_psychology?.top_cta_types) ? a.ad_psychology.top_cta_types.slice(0, 3) : []).map(c => `- ${c}`).join('\\n') || '- N/A'}\n\nACTUAL AD HEADLINES (quote these exactly):\n${(Array.isArray(a.ad_psychology?.actual_headlines) ? a.ad_psychology.actual_headlines.slice(0, 4) : []).map(h => `- \"${h}\"`).join('\\n') || '- No headlines captured'}\n\nSample Ad Copy:\n${(Array.isArray(a.ad_psychology?.actual_ad_copy) ? a.ad_psychology.actual_ad_copy.slice(0, 2) : []).map(c => `- \"${String(c).substring(0, 150)}...\"`).join('\\n') || '- No ad copy captured'}\n\nHook Patterns with psychological triggers:\n${(Array.isArray(a.ad_psychology?.hook_patterns) ? a.ad_psychology.hook_patterns.slice(0, 3).map(p => `- ${p.pattern || 'Pattern'}: \"${p.example || 'N/A'}\" → ${p.psychological_trigger || 'Appeal'}`) : []).join('\\n') || '- No patterns identified'}\n\nAd Creative Gallery (their actual ads running now):\n${getAdCreativeImages() || 'No ad images captured'}\n\nAd Strategy Summary: ${a.ad_psychology?.ad_strategy_summary || '(Analyze their ad approach based on the hooks and formats shown above.)'}\n\n## SLIDE 7: SEO DOMINANCE\nMonthly Organic Visitors: ${a.seo_intelligence?.estimated_traffic || 'N/A'}\nRanking Keywords: ${a.seo_intelligence?.organic_keywords || 'N/A'}\nMonthly Traffic Value: ${a.seo_intelligence?.estimated_traffic_value || 'N/A'}\n\nWhere to Attack (keyword opportunities):\n${a.seo_intelligence?.top_opportunities?.slice(0, 3).map(o => `- ${o}`).join('\\n') || '- No opportunities identified'}\n\n## SLIDE 8: THEIR WEAK SPOTS\nKeep CRITICAL badge styling.\n\nContent Gap:\n- Gap: ${a.gaps_and_opportunities?.content_gaps?.[0]?.gap || 'N/A'}\n- Your Move: ${a.gaps_and_opportunities?.content_gaps?.[0]?.opportunity || 'N/A'}\n\nMessaging Gap:\n- Gap: ${a.gaps_and_opportunities?.messaging_gaps?.[0]?.gap || 'N/A'}\n- Your Move: ${a.gaps_and_opportunities?.messaging_gaps?.[0]?.opportunity || 'N/A'}\n\nAudience Gap:\n- Gap: ${a.gaps_and_opportunities?.audience_gaps?.[0]?.gap || 'N/A'}\n- Your Move: ${a.gaps_and_opportunities?.audience_gaps?.[0]?.opportunity || 'N/A'}\n\n## SLIDE 9: YOUR ATTACK PLAN\nKeep ACTION PLAN badge styling.\n\nQuick Wins (This Week):\n${a.how_to_beat_them?.quick_wins?.slice(0, 2).map(w => `- ${w.tactic}`).join('\\n') || '- N/A'}\n\nPositioning Strategy:\n${a.how_to_beat_them?.positioning_plays?.slice(0, 2).map(p => `- \"${p.play}\" - ${p.execution}`).join('\\n') || '- N/A'}\n\nAd Concepts to Test:\n${a.how_to_beat_them?.ad_ideas?.slice(0, 2).map(ad => `- \"${ad.hook}\" - ${ad.concept}`).join('\\n') || '- N/A'}\n\n## SLIDE 10: CTA\nKeep \"Want This Intel on YOUR Competitors?\" messaging and stat cards.\nStats: 8 Data Sources | 60 sec | 100% Actionable Intel\nCTA: \"Get Your Custom Playbook →\"\n\n---\n\nVARIATION INSTRUCTIONS:\n- Rephrase the \"What This Means\" ad strategy callout uniquely\n- Vary action verbs in Quick Wins and Attack Plan\n- Keep dramatic tone but avoid identical phrasing to previous reports\n- Maintain CRITICAL and ACTION PLAN badge styling\n`.trim();\n\nreturn {\n  json: {\n    prompt: remixPrompt,\n    company_name: a.company_name,\n    company_url: a.company_url,\n    analysis: a\n  }\n};"
+      },
+      "id": "c90ad3de-8f3c-4b00-bbf4-981a0bd172bb",
+      "name": "Format Gamma Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://public-api.gamma.app/v1.0/generations/from-template",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"gammaId\": \"YOUR_GAMMA_TEMPLATE_ID\",\n  \"prompt\": {{ JSON.stringify($json.prompt) }}\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "b2c53698-281a-4284-ad66-be84af7a5521",
+      "name": "Gamma - Remix Template",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tjWFL0kNOacfCUe3",
+          "name": "Gamma API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "id": "ce80ce9e-42e8-412a-bdad-4884c989600f",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2200,
+        0
+      ],
+      "webhookId": "fbb76866-3a8d-4dbc-be40-45050c12115a"
+    },
+    {
+      "parameters": {
+        "url": "=https://public-api.gamma.app/v1.0/generations/{{ $json.generationId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "23bf6907-bc2b-4476-83b0-6926f088c8f9",
+      "name": "Gamma - Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "tjWFL0kNOacfCUe3",
+          "name": "Gamma API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "status-check",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "72c55253-226a-4d3d-abd4-17f5ad7a9448",
+      "name": "Is Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format the final response\nconst gammaResponse = $input.first().json;\n\nreturn {\n  json: {\n    success: true,\n    deck_url: gammaResponse.gammaUrl,\n    generation_id: gammaResponse.generationId,\n    credits_used: gammaResponse.credits?.deducted || 0,\n    credits_remaining: gammaResponse.credits?.remaining || 0,\n    generated_at: new Date().toISOString(),\n    message: `Competitive playbook generated successfully! View your deck at: ${gammaResponse.gammaUrl}`\n  }\n};"
+      },
+      "id": "888a8791-19df-422c-a173-151b9028aa90",
+      "name": "Format Success Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "trigger-check",
+              "leftValue": "={{ $('Webhook Trigger').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-trigger-type",
+      "name": "Is Webhook Trigger?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "4266a6f7-027a-48de-9692-1e511fcfe5bd",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3280,
+        -160
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c7002183-da5a-466b-86ab-a0f114c8fe61",
+      "name": "Wait & Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2800,
+        120
+      ],
+      "webhookId": "29ffda51-b7c3-40e2-8c76-ffc84de3d599"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract company name and social handles from homepage\nconst input = $input.first().json;\nconst html = input.data?.html || '';\nconst markdown = input.data?.markdown || '';\nconst content = html + ' ' + markdown;\nconst originalUrl = input.data?.metadata?.url || '';\n\n// Extract company name from various sources\nlet company_name = '';\n\n// Try og:site_name meta tag FIRST (most reliable for company name)\nconst ogSiteNameMatch = html.match(/property=[\"'\"]og:site_name[\"'\"][^>]*content=[\"'\"]([^\"'\"]+)[\"'\"]/i) ||\n                        html.match(/content=[\"'\"]([^\"'\"]+)[\"'\"][^>]*property=[\"'\"]og:site_name[\"'\"]/i);\nif (ogSiteNameMatch) {\n  company_name = ogSiteNameMatch[1].trim();\n}\n\n// Try page title - prefer the SHORTER part (usually the company name)\nif (!company_name) {\n  const titleMatch = html.match(/<title[^>]*>([^<]+)<\\/title>/i);\n  if (titleMatch) {\n    // Split on common separators: | - – — •\n    const parts = titleMatch[1].split(/[|\\-–—•]/).map(p => p.trim()).filter(p => p);\n    if (parts.length > 1) {\n      // Find the shortest part that looks like a company name (not a tagline)\n      const sortedByLength = [...parts].sort((a, b) => a.length - b.length);\n      for (const part of sortedByLength) {\n        const cleaned = part.replace(/Home|Homepage|Welcome to|™|®/gi, '').trim();\n        if (cleaned.length >= 2 && cleaned.length <= 30 && !/^(the|a|an|and|or|for|to|in|on|at|by|with)$/i.test(cleaned)) {\n          company_name = cleaned;\n          break;\n        }\n      }\n    } else if (parts.length === 1) {\n      company_name = parts[0].replace(/Home|Homepage|Welcome to|™|®/gi, '').trim();\n    }\n  }\n}\n\n// Try domain name BEFORE H1 (more reliable than headline)\nif (!company_name) {\n  const domainMatch = originalUrl.match(/\\/\\/(?:www\\.)?([^.\\/]+)/i);\n  if (domainMatch) {\n    // Capitalize first letter of domain\n    company_name = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);\n  }\n}\n\n// Try first H1 only if short (likely company name, not a headline)\nif (!company_name) {\n  const h1Match = html.match(/<h1[^>]*>([^<]+)<\\/h1>/i);\n  if (h1Match) {\n    const h1Text = h1Match[1].trim();\n    if (h1Text.length <= 25) company_name = h1Text;\n  }\n}\n\n// Extract LinkedIn company handle from website links\nlet linkedin_handle = '';\nconst linkedinPatterns = [\n  /linkedin\\.com\\/company\\/([a-zA-Z][a-zA-Z0-9_-]{0,99})(?:[\\/?#]|$)/i,\n  /href=[\"'][^\"']*linkedin\\.com\\/company\\/([a-zA-Z][a-zA-Z0-9_-]{0,99})[\"'\\/?#]/i\n];\nfor (const pattern of linkedinPatterns) {\n  const match = content.match(pattern);\n  if (match && match[1]) {\n    const candidate = match[1].replace(/[\\/\\?#].*$/, '');\n    if (candidate.length >= 2 && /^[a-zA-Z]/.test(candidate) && !/^\\d+$/.test(candidate)) {\n      linkedin_handle = candidate;\n      break;\n    }\n  }\n}\n\n// Extract Instagram handle from website links\nlet instagram_handle = '';\nconst instagramMatch = content.match(/instagram\\.com\\/([a-zA-Z0-9._]+)/i);\nif (instagramMatch) {\n  instagram_handle = instagramMatch[1];\n}\n\n// Extract Facebook page from website links\nlet facebook_page_alias = '';\nconst facebookMatch = content.match(/facebook\\.com\\/([a-zA-Z0-9._-]+)/i);\nif (facebookMatch) {\n  facebook_page_alias = facebookMatch[1];\n}\n\n// Pass through for ScrapeCreators company search\nreturn {\n  json: {\n    body: {\n      url: originalUrl,\n      company_name,\n      linkedin_handle,\n      instagram_handle,\n      facebook_page_alias\n    },\n    homepage_data: input.data\n  }\n};"
+      },
+      "id": "extract-social-handles",
+      "name": "Extract Social Handles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.scrapecreators.com/v1/facebook/adLibrary/search/companies?query={{ encodeURIComponent($json.body.company_name) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "scrapecreators-company-search",
+      "name": "ScrapeCreators - Company Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "55pCjUM1Y9yvV9Ru",
+          "name": "Scrapecreators"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process company search results and combine with homepage data\nconst input = $input.first().json;\nconst prevData = $('Extract Social Handles').first().json;\n\n// Get the best match from search results (first result)\nconst searchResults = input.searchResults || [];\nconst bestMatch = searchResults[0] || {};\n\n// Extract handles from search results, with homepage fallback\nconst instagram_handle = bestMatch.ig_username || prevData.body.instagram_handle || '';\nconst facebook_page_id = bestMatch.page_id || '';\nconst facebook_page_alias = bestMatch.page_alias || prevData.body.facebook_page_alias || '';\n\nconst sources = {\n  instagram_source: bestMatch.ig_username ? 'company_search' : (prevData.body.instagram_handle ? 'homepage' : 'none'),\n  facebook_source: bestMatch.page_alias ? 'company_search' : (prevData.body.facebook_page_alias ? 'homepage' : 'none')\n};\n\nreturn {\n  json: {\n    body: {\n      url: prevData.body.url,\n      company_name: prevData.body.company_name,\n      linkedin_handle: prevData.body.linkedin_handle,\n      instagram_handle: instagram_handle,\n      facebook_page_id: facebook_page_id,\n      facebook_page_alias: facebook_page_alias\n    },\n    homepage_data: prevData.homepage_data,\n    search_result: bestMatch,\n    all_search_results: searchResults.slice(0, 3),\n    handle_sources: sources\n  }\n};"
+      },
+      "id": "process-search-results",
+      "name": "Process Search Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 8,
+        "options": {}
+      },
+      "id": "merge-all-data",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"https://www.google.com/search?q={{ encodeURIComponent($json.body.company_name + ' site:linkedin.com/company') }}\",\n  \"formats\": [\"markdown\", \"links\"],\n  \"onlyMainContent\": true,\n  \"waitFor\": 2000\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "firecrawl-linkedin-search",
+      "name": "Firecrawl - LinkedIn Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -480,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4h3R8ycmwM3qzaVb",
+          "name": "Firecrawl API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse LinkedIn search results from Firecrawl Google scrape\nconst input = $input.first().json;\nconst prevData = $('Process Search Results').first().json;\n\nlet linkedin_handle = prevData.body.linkedin_handle || '';\nlet linkedin_source = 'none';\n\nfunction isValidLinkedInHandle(handle) {\n  if (!handle || handle.length < 2) return false;\n  if (!/^[a-zA-Z]/.test(handle)) return false;\n  if (/^\\d+$/.test(handle)) return false;\n  const generic = ['company', 'companies', 'jobs', 'about', 'login', 'school', 'showcase'];\n  if (generic.includes(handle.toLowerCase())) return false;\n  return true;\n}\n\nconst existingHandleValid = isValidLinkedInHandle(linkedin_handle);\n\nif (existingHandleValid) {\n  linkedin_source = 'homepage';\n} else {\n  linkedin_handle = '';\n  \n  if (input.data) {\n    const content = (input.data.markdown || '') + ' ' + JSON.stringify(input.data.links || []);\n    const linkedinPatterns = [\n      /linkedin\\.com\\/company\\/([a-zA-Z][a-zA-Z0-9_-]{1,99})(?:[\\/?#\"'\\s]|$)/gi,\n      /\\/company\\/([a-zA-Z][a-zA-Z0-9_-]{1,99})(?:[\\/?#\"'\\s]|$)/gi\n    ];\n    \n    for (const pattern of linkedinPatterns) {\n      const matches = content.matchAll(pattern);\n      for (const match of matches) {\n        const candidate = match[1].replace(/[\\/\\?#].*$/, '');\n        if (isValidLinkedInHandle(candidate)) {\n          linkedin_handle = candidate;\n          linkedin_source = 'google_search';\n          break;\n        }\n      }\n      if (linkedin_handle) break;\n    }\n  }\n}\n\nreturn {\n  json: {\n    body: {\n      ...prevData.body,\n      linkedin_handle: linkedin_handle\n    },\n    homepage_data: prevData.homepage_data,\n    search_result: prevData.search_result,\n    all_search_results: prevData.all_search_results,\n    handle_sources: {\n      ...prevData.handle_sources,\n      linkedin_source: linkedin_source,\n      linkedin_handle_debug: {\n        original: prevData.body.linkedin_handle || '',\n        original_valid: existingHandleValid,\n        final: linkedin_handle\n      }\n    }\n  }\n};"
+      },
+      "id": "parse-linkedin-search",
+      "name": "Parse LinkedIn URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        200
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Form Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Form Input": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl - Homepage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl - Homepage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl - Homepage": {
+      "main": [
+        [
+          {
+            "node": "Extract Social Handles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Social Handles": {
+      "main": [
+        [
+          {
+            "node": "ScrapeCreators - Company Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ScrapeCreators - Company Search": {
+      "main": [
+        [
+          {
+            "node": "Process Search Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Search Results": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl - LinkedIn Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl - LinkedIn Search": {
+      "main": [
+        [
+          {
+            "node": "Parse LinkedIn URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LinkedIn URL": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl - About Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firecrawl - Pricing Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Firecrawl - Blog",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ScrapeCreators - LinkedIn Company",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ScrapeCreators - Instagram Profile",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ScrapeCreators - Meta Ad Library",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "DataForSEO - Domain Overview",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl - About Page": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Firecrawl - Pricing Page": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Firecrawl - Blog": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "ScrapeCreators - LinkedIn Company": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Raw LinkedIn Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Raw LinkedIn Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse LinkedIn Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LinkedIn Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "ScrapeCreators - Instagram Profile": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Raw Instagram Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Raw Instagram Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse Instagram Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Instagram Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "ScrapeCreators - Meta Ad Library": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Raw Ad Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Raw Ad Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse Ad Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Ad Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "DataForSEO - Domain Overview": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Process Website Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Website Data": {
+      "main": [
+        [
+          {
+            "node": "Claude - Competitive Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude - Competitive Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse Analysis JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Analysis JSON": {
+      "main": [
+        [
+          {
+            "node": "Format Gamma Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Gamma Prompt": {
+      "main": [
+        [
+          {
+            "node": "Gamma - Remix Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gamma - Remix Template": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Gamma - Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gamma - Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Complete?": {
+      "main": [
+        [
+          {
+            "node": "Format Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait & Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success Response": {
+      "main": [
+        [
+          {
+            "node": "Is Webhook Trigger?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Webhook Trigger?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Wait & Retry": {
+      "main": [
+        [
+          {
+            "node": "Gamma - Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
