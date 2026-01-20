@@ -89,7 +89,7 @@ This workflow uses Gamma's **Remix API** - it fills YOUR template with competito
 
 **Want a pre-built template to start from?**
 
-[![Use Gamma Template](https://img.shields.io/badge/Get%20Starter%20Template-Gamma-7C3AED?style=for-the-badge)](https://gamma.app/docs/Competitor-Playbook-Template-LEAKED-INTEL-vq6w19awfawp7f8)
+[![Use Gamma Template](https://img.shields.io/badge/Get%20Starter%20Template-Gamma-7C3AED?style=for-the-badge)](https://gamma.app/docs/LEAKED-INTEL-V3-rgos3tz3jlt77ez)
 
 ### 4. Run It
 
