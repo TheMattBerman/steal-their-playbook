@@ -65,7 +65,7 @@ You'll need accounts with these services:
 | **ScrapeCreators** | Social media + ad data | [scrapecreators.com](https://scrapecreators.com) |
 | **DataForSEO** | SEO metrics | [dataforseo.com](https://dataforseo.com) |
 | **OpenRouter** | AI models (Claude + Gemini) | [openrouter.ai](https://openrouter.ai) |
-| **Gamma** | Deck generation (Pro required) | [gamma.app](https://gamma.app) |
+| **Gamma** | Deck generation (Pro required) | [Gamma](https://gamma.app/?utm_medium=creator&utm_content=Matthew_Berman_X) |
 
 In n8n, go to **Settings** → **Credentials** and create Header Auth credentials:
 
@@ -81,7 +81,7 @@ In n8n, go to **Settings** → **Credentials** and create Header Auth credential
 
 This workflow uses Gamma's **Remix API** - it fills YOUR template with competitor data. You need to create a template deck first:
 
-1. Go to [gamma.app](https://gamma.app) and create a new presentation
+1. Go to [Gamma](https://gamma.app/?utm_medium=creator&utm_content=Matthew_Berman_X) and create a new presentation
 2. Design a 10-slide competitive playbook with your branding
 3. Include placeholder content matching the slide structure above
 4. Copy the deck ID from the URL (format: `g_XXXXXXXXXXXX`)
@@ -200,7 +200,7 @@ Add HTTP Request nodes and connect them to the Merge node (8 inputs).
 
 [![n8n](https://img.shields.io/badge/n8n-Workflow%20Automation-FF6D5A?style=flat-square&logo=n8n)](https://n8n.io) - Open-source workflow automation
 
-[![Gamma](https://img.shields.io/badge/Gamma-AI%20Presentations-7C3AED?style=flat-square)](https://gamma.app) - Beautiful AI-powered presentations
+[![Gamma](https://img.shields.io/badge/Gamma-AI%20Presentations-7C3AED?style=flat-square)](https://gamma.app/?utm_medium=creator&utm_content=Matthew_Berman_X) - Beautiful AI-powered presentations
 
 [![Anthropic](https://img.shields.io/badge/Claude-Anthropic-D4A574?style=flat-square)](https://anthropic.com) - Advanced AI analysis
 
